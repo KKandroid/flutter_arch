@@ -3,9 +3,10 @@ import 'life_cycle.dart';
 /// 可以观测的数据，同时可以感知生命周期
 class LiveData<T> {
   Map<Observer<T>, _ObserverWrapper<T>> observers = {};
-  static const startVersion = -1;
+  static const startVersion = 0;
   int _version = startVersion;
-  T? _data;
+
+  T _data;
 
   int activeCount = 0;
 
@@ -15,12 +16,7 @@ class LiveData<T> {
 
   bool dispatchInvalidated = false;
 
-  LiveData({T? data}) {
-    if (data != null) {
-      _data = data;
-      _version += 1;
-    }
-  }
+  LiveData(T data) : _data = data;
 
   void setValue(T data) {
     _data = data;
@@ -78,7 +74,7 @@ class LiveData<T> {
     }
   }
 
-  T? getValue() {
+  T getValue() {
     return _data;
   }
 
@@ -175,7 +171,7 @@ class LiveData<T> {
   }
 }
 
-typedef Observer<T> = void Function(T? t);
+typedef Observer<T> = void Function(T t);
 
 abstract class _ObserverWrapper<T> {
   final LiveData<T> liveData;

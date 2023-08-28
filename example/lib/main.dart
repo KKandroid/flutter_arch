@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_arch/flutter_arch.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,15 +15,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
@@ -32,72 +25,48 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with BaseViewState<MyHomePage, HomeModel> {
   int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+    // initState阶段使用getValue直接，从LiveData中获取数据
+    _counter = model.count.getValue();
+    // 观察LiveData中数据变化，第二lifecycleOwner会将观察者与State的生命周期绑定，当state 执行dispose后，观察者会自动取消注册。
+    model.count.listen((t) {
+      // 根据需要去更新UI
+      setState(() {
+        _counter = t;
+      });
+    }, lifecycleOwner: this);
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
               'You have pushed the button this many times:',
             ),
+            IconButton(
+                iconSize: 100,
+                color: Colors.amber,
+                onPressed: () =>
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MyHomePage(title: "第二个"))),
+                icon: const Icon(Icons.nat)),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
@@ -106,10 +75,71 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        // 通过model 操作数据。
+        onPressed: () => model.incrementCounter(),
         tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
+
+  /// 实现该方法 会在initState阶段执行 创建Model
+  @override
+  HomeModel createModel() => HomeModel(context);
+}
+
+class HomeModel extends ViewModel {
+  /// 可观测的数据
+  LiveData<int> count = LiveData(0);
+
+  HomeModel(BuildContext context) : super(context);
+
+  @override
+  void initData() {
+    // 完成初始化数据工作
+    count.setValue(1);
+  }
+
+  /// 提供给UI操作的数据的
+  void incrementCounter() {
+    var countValue = count.getValue() + 1;
+    Future.delayed(const Duration(seconds: 3), () => count.setValue(countValue));
+  }
+
+  /// 释放资源
+  @override
+  void dispose() {}
+}
+
+class UserInfo {
+  String name;
+
+  UserInfo(this.name, this.account);
+
+  String account;
+}
+
+LiveData<UserInfo> userInfo = LiveData(UserInfo("jack", "123"));
+
+void setUserInfo(UserInfo info) {
+  // 更新数据
+  userInfo.setValue(info);
+}
+
+void observer(UserInfo info) {
+  if (kDebugMode) {
+    print("name=${info.name} & account= ${info.account}");
+  }
+}
+
+void listenUserInfo() {
+  // 直接获取
+  userInfo.getValue();
+  // 监听变化 lifecycleOwner 类型
+  userInfo.listen(observer, lifecycleOwner: null);
+}
+
+void removeObserver() {
+  // 手动移除
+  userInfo.removeObserver(observer);
 }
