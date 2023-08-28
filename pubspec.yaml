@@ -1,7 +1,7 @@
 name: flutter_arch
 description: flutter app arch component include ViewModel LiveData and BaseViewState, which is used to decouple
   business logic and UI..
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/KKandroid/flutter_arch
 repository: https://github.com/KKandroid/flutter_arch
 
