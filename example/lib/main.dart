@@ -31,7 +31,8 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with BaseViewState<MyHomePage, HomeModel> {
+class _MyHomePageState extends State<MyHomePage>
+    with BaseViewState<MyHomePage, HomeModel> {
   int _counter = 0;
 
   @override
@@ -64,8 +65,10 @@ class _MyHomePageState extends State<MyHomePage> with BaseViewState<MyHomePage, 
             IconButton(
                 iconSize: 100,
                 color: Colors.amber,
-                onPressed: () =>
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MyHomePage(title: "第二个"))),
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const MyHomePage(title: "第二个"))),
                 icon: const Icon(Icons.nat)),
             Text(
               '$_counter',
@@ -103,7 +106,8 @@ class HomeModel extends ViewModel {
   /// 提供给UI操作的数据的
   void incrementCounter() {
     var countValue = count.getValue() + 1;
-    Future.delayed(const Duration(seconds: 3), () => count.setValue(countValue));
+    Future.delayed(
+        const Duration(seconds: 3), () => count.setValue(countValue));
   }
 
   /// 释放资源

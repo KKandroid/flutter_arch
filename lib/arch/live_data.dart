@@ -49,11 +49,13 @@ class LiveData<T> {
         if (lifecycle.getCurrentState() == LifecycleState.defunct) {
           return;
         }
-        var wrapper = _LifecycleBoundObserver<T>(this, observer, lifecycleOwner);
+        var wrapper =
+            _LifecycleBoundObserver<T>(this, observer, lifecycleOwner);
         var existing = observers[observer];
         if (existing != null) {
           if (existing.isBoundTo(lifecycleOwner)) {
-            throw Exception("Cannot add the same observer with different lifecycles");
+            throw Exception(
+                "Cannot add the same observer with different lifecycles");
           }
           return;
         }
@@ -63,7 +65,8 @@ class LiveData<T> {
         var existing = observers[observer];
         if (existing != null) {
           if (existing is _LifecycleBoundObserver) {
-            throw Exception("Cannot add the same observer with different lifecycles");
+            throw Exception(
+                "Cannot add the same observer with different lifecycles");
           }
           return;
         }
@@ -202,16 +205,20 @@ abstract class _ObserverWrapper<T> {
 }
 
 class _AlwaysActiveObserver<T> extends _ObserverWrapper<T> {
-  _AlwaysActiveObserver(LiveData<T> liveData, Observer<T> observer) : super(liveData, observer);
+  _AlwaysActiveObserver(LiveData<T> liveData, Observer<T> observer)
+      : super(liveData, observer);
 
   @override
   bool shouldBeActive() => true;
 }
 
-class _LifecycleBoundObserver<T> extends _ObserverWrapper<T> implements LifecycleObserver {
+class _LifecycleBoundObserver<T> extends _ObserverWrapper<T>
+    implements LifecycleObserver {
   final BaseViewState owner;
 
-  _LifecycleBoundObserver(LiveData<T> liveData, Observer<T> observer, this.owner) : super(liveData, observer);
+  _LifecycleBoundObserver(
+      LiveData<T> liveData, Observer<T> observer, this.owner)
+      : super(liveData, observer);
 
   @override
   bool isBoundTo(BaseViewState owner) {
