@@ -174,8 +174,10 @@ class LiveData<T> {
   }
 }
 
+/// 定义观察者
 typedef Observer<T> = void Function(T t);
 
+/// 观察者包装类,具体实现 [_AlwaysActiveObserver] 和 [_LifecycleBoundObserver]
 abstract class _ObserverWrapper<T> {
   final LiveData<T> liveData;
   final Observer<T> observer;
