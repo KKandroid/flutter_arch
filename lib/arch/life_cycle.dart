@@ -280,7 +280,6 @@ mixin BaseViewState<T extends StatefulWidget, D extends ViewModel> on State<T> {
     model = createModel();
     model.init();
     _lifecycle.setCurrentState(LifecycleState.ready);
-    print("--------------------------4");
     super.initState();
   }
 
