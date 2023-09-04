@@ -103,15 +103,7 @@ class LifecycleRegistry extends Lifecycle {
     return _state;
   }
 
-  void setCurrentState(LifecycleState state) {
-    _moveToState(state);
-  }
-
-  void handleLifecycleEvent(LifecycleEvent event) {
-    _moveToState(_getTargetState(event));
-  }
-
-  void _moveToState(LifecycleState next) {
+  void setCurrentState(LifecycleState next) {
     if (_state == next) {
       return;
     }
@@ -135,13 +127,11 @@ class LifecycleRegistry extends Lifecycle {
     while (!isSynced()) {
       _newEventOccurred = false;
       // no need to check eldest for nullability, because isSynced does it for us.
-      LifecycleState? eldestObserverState =
-          observerMap[observerMap.keys.first]?.state;
+      LifecycleState? eldestObserverState = getEldestStateObserver()?.state;
       if (_state.index < (eldestObserverState?.index ?? -1)) {
         _backwardPass(lifecycleOwner);
       }
-      ObserverWithState? newestStateObserver =
-          observerMap[observerMap.keys.last];
+      ObserverWithState? newestStateObserver = getNewestStateObserver();
       if (!_newEventOccurred &&
           newestStateObserver != null &&
           _state.index > newestStateObserver.state.index) {
@@ -149,6 +139,20 @@ class LifecycleRegistry extends Lifecycle {
       }
     }
     _newEventOccurred = false;
+  }
+
+  ObserverWithState? getEldestStateObserver() {
+    if (observerMap.keys.isEmpty) {
+      return null;
+    }
+    return observerMap[observerMap.keys.first];
+  }
+
+  ObserverWithState? getNewestStateObserver() {
+    if (observerMap.keys.isEmpty) {
+      return null;
+    }
+    return observerMap[observerMap.keys.last];
   }
 
   LifecycleState calculateTargetState(LifecycleObserver observer) {
@@ -167,13 +171,11 @@ class LifecycleRegistry extends Lifecycle {
   }
 
   bool isSynced() {
-    if (observerMap.isNotEmpty) {
+    if (observerMap.isEmpty) {
       return true;
     }
-    LifecycleState? eldestObserverState =
-        observerMap[observerMap.keys.first]?.state;
-    LifecycleState? newestObserverState =
-        observerMap[observerMap.keys.last]?.state;
+    LifecycleState? eldestObserverState = getEldestStateObserver()?.state;
+    LifecycleState? newestObserverState = getNewestStateObserver()?.state;
     return eldestObserverState == newestObserverState &&
         _state == newestObserverState;
   }
@@ -261,13 +263,13 @@ abstract class LifecycleObserver {
 
 /// 为 State 对象的生命周期委托给 LifecycleOwner。
 mixin BaseViewState<T extends StatefulWidget, D extends ViewModel> on State<T> {
-  LifecycleRegistry? _lifecycle;
+  late LifecycleRegistry _lifecycle;
 
   late D model;
 
   D createModel();
 
-  LifecycleRegistry? getLifecycle() {
+  LifecycleRegistry getLifecycle() {
     return _lifecycle;
   }
 
@@ -275,16 +277,17 @@ mixin BaseViewState<T extends StatefulWidget, D extends ViewModel> on State<T> {
   @override
   void initState() {
     _lifecycle = LifecycleRegistry(this);
-    _lifecycle?.setCurrentState(LifecycleState.ready);
     model = createModel();
     model.init();
+    _lifecycle.setCurrentState(LifecycleState.ready);
+    print("--------------------------4");
     super.initState();
   }
 
   @mustCallSuper
   @override
   void dispose() {
-    _lifecycle?.setCurrentState(LifecycleState.defunct);
+    _lifecycle.setCurrentState(LifecycleState.defunct);
     model.dispose();
     super.dispose();
   }

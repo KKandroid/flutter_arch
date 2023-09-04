@@ -16,7 +16,9 @@ class LiveData<T> {
 
   bool dispatchInvalidated = false;
 
-  LiveData(T data) : _data = data;
+  LiveData(T data) : _data = data {
+    _version++;
+  }
 
   void setValue(T data) {
     _data = data;
@@ -43,9 +45,6 @@ class LiveData<T> {
     if (!observers.containsKey(observer)) {
       if (lifecycleOwner != null) {
         var lifecycle = lifecycleOwner.getLifecycle();
-        if (lifecycle == null) {
-          return;
-        }
         if (lifecycle.getCurrentState() == LifecycleState.defunct) {
           return;
         }
@@ -229,29 +228,27 @@ class _LifecycleBoundObserver<T> extends _ObserverWrapper<T>
 
   @override
   void detachObserver() {
-    owner.getLifecycle()?.removeObserver(this);
+    owner.getLifecycle().removeObserver(this);
   }
 
   @override
   bool shouldBeActive() {
-    return owner.getLifecycle()?.getCurrentState() == LifecycleState.ready;
+    return owner.getLifecycle().getCurrentState() == LifecycleState.ready;
   }
 
   @override
   void onStateChanged(BaseViewState owner, LifecycleEvent event) {
     var lifecycle = owner.getLifecycle();
-    if (lifecycle != null) {
-      LifecycleState currentState = lifecycle.getCurrentState();
-      if (currentState == LifecycleState.defunct) {
-        liveData.removeObserver(observer);
-        return;
-      }
-      LifecycleState? prevState;
-      while (prevState != currentState) {
-        prevState = currentState;
-        activeStateChanged(shouldBeActive());
-        currentState = lifecycle.getCurrentState();
-      }
+    LifecycleState currentState = lifecycle.getCurrentState();
+    if (currentState == LifecycleState.defunct) {
+      liveData.removeObserver(observer);
+      return;
+    }
+    LifecycleState? prevState;
+    while (prevState != currentState) {
+      prevState = currentState;
+      activeStateChanged(shouldBeActive());
+      currentState = lifecycle.getCurrentState();
     }
   }
 }
