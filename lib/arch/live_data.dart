@@ -1,8 +1,8 @@
-import 'life_cycle.dart';
+import 'lifecycle.dart';
 
 /// 可以观测的数据，同时可以感知生命周期
 class LiveData<T> {
-  Map<Observer<T>, _ObserverWrapper<T>> observers = {};
+  Map<Observer<T>, ObserverWrapper<T>> observers = {};
   static const startVersion = 0;
   int _version = startVersion;
 
@@ -21,12 +21,15 @@ class LiveData<T> {
   }
 
   void setValue(T data) {
+    if (_data == data) {
+      return;
+    }
     _data = data;
     _version++;
     dispatchingValue(null);
   }
 
-  void considerNotify(_ObserverWrapper<T> observer) {
+  void considerNotify(ObserverWrapper<T> observer) {
     if (!observer.active) {
       return;
     }
@@ -48,13 +51,11 @@ class LiveData<T> {
         if (lifecycle.getCurrentState() == LifecycleState.defunct) {
           return;
         }
-        var wrapper =
-            _LifecycleBoundObserver<T>(this, observer, lifecycleOwner);
+        var wrapper = _LifecycleBoundObserver<T>(this, observer, lifecycleOwner);
         var existing = observers[observer];
         if (existing != null) {
           if (existing.isBoundTo(lifecycleOwner)) {
-            throw Exception(
-                "Cannot add the same observer with different lifecycles");
+            throw Exception("Cannot add the same observer with different lifecycles");
           }
           return;
         }
@@ -64,8 +65,7 @@ class LiveData<T> {
         var existing = observers[observer];
         if (existing != null) {
           if (existing is _LifecycleBoundObserver) {
-            throw Exception(
-                "Cannot add the same observer with different lifecycles");
+            throw Exception("Cannot add the same observer with different lifecycles");
           }
           return;
         }
@@ -98,7 +98,7 @@ class LiveData<T> {
   void onInactive() {}
 
   void removeObserver(Observer<T> observer) {
-    _ObserverWrapper<T>? removed = observers.remove(observer);
+    ObserverWrapper<T>? removed = observers.remove(observer);
     if (removed == null) {
       return;
     }
@@ -126,7 +126,7 @@ class LiveData<T> {
     return activeCount > 0;
   }
 
-  void dispatchingValue(_ObserverWrapper<T>? observerWrapper) {
+  void dispatchingValue(ObserverWrapper<T>? observerWrapper) {
     if (valueDispatching) {
       dispatchInvalidated = true;
       return;
@@ -177,13 +177,13 @@ class LiveData<T> {
 typedef Observer<T> = void Function(T t);
 
 /// 观察者包装类,具体实现 [_AlwaysActiveObserver] 和 [_LifecycleBoundObserver]
-abstract class _ObserverWrapper<T> {
+abstract class ObserverWrapper<T> {
   final LiveData<T> liveData;
   final Observer<T> observer;
   bool active = true;
   int lastVersion = LiveData.startVersion;
 
-  _ObserverWrapper(this.liveData, this.observer);
+  ObserverWrapper(this.liveData, this.observer);
 
   bool shouldBeActive();
 
@@ -205,21 +205,17 @@ abstract class _ObserverWrapper<T> {
   }
 }
 
-class _AlwaysActiveObserver<T> extends _ObserverWrapper<T> {
-  _AlwaysActiveObserver(LiveData<T> liveData, Observer<T> observer)
-      : super(liveData, observer);
+class _AlwaysActiveObserver<T> extends ObserverWrapper<T> {
+  _AlwaysActiveObserver(LiveData<T> liveData, Observer<T> observer) : super(liveData, observer);
 
   @override
   bool shouldBeActive() => true;
 }
 
-class _LifecycleBoundObserver<T> extends _ObserverWrapper<T>
-    implements LifecycleObserver {
+class _LifecycleBoundObserver<T> extends ObserverWrapper<T> implements LifecycleObserver {
   final BaseViewState owner;
 
-  _LifecycleBoundObserver(
-      LiveData<T> liveData, Observer<T> observer, this.owner)
-      : super(liveData, observer);
+  _LifecycleBoundObserver(LiveData<T> liveData, Observer<T> observer, this.owner) : super(liveData, observer);
 
   @override
   bool isBoundTo(BaseViewState owner) {

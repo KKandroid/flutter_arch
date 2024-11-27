@@ -1,10 +1,18 @@
 import 'package:flutter/widgets.dart';
 
-/// created by kangkai
+import 'live_data.dart';
+
+/// created by kk
 abstract class ViewModel {
   final BuildContext context;
 
-  const ViewModel(this.context);
+  final LiveData state = LiveData(0);
+
+  ViewModel(this.context);
+
+  void setState() {
+    state.setValue(state.getValue() + 1);
+  }
 
   /// 初始化状态
   void init() {

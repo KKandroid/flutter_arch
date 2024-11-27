@@ -53,8 +53,7 @@ class LifecycleRegistry extends Lifecycle {
 
   LifecycleRegistry(this.lifecycleOwner);
 
-  LinkedHashMap<LifecycleObserver, ObserverWithState> observerMap =
-      LinkedHashMap();
+  LinkedHashMap<LifecycleObserver, ObserverWithState> observerMap = LinkedHashMap();
 
   final List _parentState = [];
 
@@ -68,9 +67,7 @@ class LifecycleRegistry extends Lifecycle {
 
   @override
   void addObserver(LifecycleObserver observer) {
-    LifecycleState initialState = _state == LifecycleState.defunct
-        ? LifecycleState.defunct
-        : LifecycleState.ready;
+    LifecycleState initialState = _state == LifecycleState.defunct ? LifecycleState.defunct : LifecycleState.ready;
     var statefulObserver = ObserverWithState(initialState, observer);
     ObserverWithState? previous = observerMap[observer];
     if (previous != null) {
@@ -81,8 +78,7 @@ class LifecycleRegistry extends Lifecycle {
     bool isReentrancy = _addingObserverCounter != 0 || _handlingEvent;
     LifecycleState targetState = calculateTargetState(observer);
     _addingObserverCounter++;
-    while (statefulObserver.state.index < targetState.index &&
-        observerMap.containsKey(observer)) {
+    while (statefulObserver.state.index < targetState.index && observerMap.containsKey(observer)) {
       _pushParentState(statefulObserver.state);
       final LifecycleEvent? event = _upFrom(statefulObserver.state);
       if (event == null) {
@@ -132,9 +128,7 @@ class LifecycleRegistry extends Lifecycle {
         _backwardPass(lifecycleOwner);
       }
       ObserverWithState? newestStateObserver = getNewestStateObserver();
-      if (!_newEventOccurred &&
-          newestStateObserver != null &&
-          _state.index > newestStateObserver.state.index) {
+      if (!_newEventOccurred && newestStateObserver != null && _state.index > newestStateObserver.state.index) {
         _forwardPass(lifecycleOwner);
       }
     }
@@ -157,8 +151,7 @@ class LifecycleRegistry extends Lifecycle {
 
   LifecycleState calculateTargetState(LifecycleObserver observer) {
     LifecycleState? siblingState = observerMap[observer]?.state;
-    LifecycleState? parentState =
-        _parentState.isNotEmpty ? _parentState.last : null;
+    LifecycleState? parentState = _parentState.isNotEmpty ? _parentState.last : null;
     return _min(_min(_state, siblingState), parentState);
   }
 
@@ -176,8 +169,7 @@ class LifecycleRegistry extends Lifecycle {
     }
     LifecycleState? eldestObserverState = getEldestStateObserver()?.state;
     LifecycleState? newestObserverState = getNewestStateObserver()?.state;
-    return eldestObserverState == newestObserverState &&
-        _state == newestObserverState;
+    return eldestObserverState == newestObserverState && _state == newestObserverState;
   }
 
   void _forwardPass(BaseViewState lifecycleOwner) {
@@ -281,6 +273,7 @@ mixin BaseViewState<T extends StatefulWidget, D extends ViewModel> on State<T> {
     model.init();
     _lifecycle.setCurrentState(LifecycleState.ready);
     super.initState();
+    model.state.listen((_) => setState(() {}), lifecycleOwner: this);
   }
 
   @mustCallSuper
