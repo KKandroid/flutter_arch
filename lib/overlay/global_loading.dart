@@ -53,7 +53,7 @@ class GlobalLoadingViewState extends State<GlobalLoadingView> with BaseViewState
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 const CircularProgressIndicator(),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(model.message, style: const TextStyle(fontSize: 12, color: Colors.black)),
               ],
             ),
