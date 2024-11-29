@@ -1,4 +1,6 @@
-## metalpha_arch
+# flutter_arch
+
+## arch
 
 flutter 架构组件 包括 ViewModel LiveData 及 BaseViewState，主要作用将业务逻辑和UI解藕。
 
@@ -153,5 +155,14 @@ void removeObserver() {
 }
 ```
 
+## base  添加基于 MVVM 架构页面基类
+
+## event_bus 添加基于架构组件的 事件总线
+
+## global state 内存本地双缓存且可观测的全局状态
+
+## global loading 全局的异步阻塞交互的 loading
+
+## toast 组件 支持自定义toast视图 和 长短时间toast 多个toast同时显示
 
 

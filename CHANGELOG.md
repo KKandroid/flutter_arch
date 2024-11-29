@@ -27,3 +27,6 @@
 - 优化架构组件 setValue 的值相同时不会触发更新，ViewModel 添加 setState 方法用于更新 BaseViewState。
 - 添加基于 MVVM 架构页面基类
 - 添加基于架构组件的 事件总线
+- 内存本地双缓存且可观测的全局状态
+- 全局的异步阻塞交互的 loading
+- toast 组件
