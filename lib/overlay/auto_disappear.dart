@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class AutoDisappearWidget extends StatefulWidget {
   final Widget child;
   final VoidCallback? onDisappear;
+  final Duration duration;
 
   const AutoDisappearWidget({
     Key? key,
     required this.child,
     this.onDisappear,
+    this.duration = const Duration(seconds: 4),
   }) : super(key: key);
 
   @override
@@ -24,7 +26,7 @@ class _AutoDisappearWidgetState extends State<AutoDisappearWidget>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 5000), // 6 seconds (1 for scale + 5 for opacity)
+      duration: widget.duration, // 6 seconds (1 for scale + 5 for opacity)
       vsync: this,
     );
 
@@ -32,7 +34,7 @@ class _AutoDisappearWidgetState extends State<AutoDisappearWidget>
     _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 0.05, curve: Curves.easeOut),
+        curve: const Interval(0.0, 0.1, curve: Curves.easeOut),
       ),
     );
 

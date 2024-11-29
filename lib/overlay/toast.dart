@@ -5,15 +5,32 @@ import 'package:flutter_arch/even_bus/index.dart';
 import 'package:flutter_arch/overlay/auto_disappear.dart';
 
 class Toast extends StatefulWidget {
-  static const eventKey = "Toast";
+  static Position position = Position.center;
+
+  static const toastShort = "Toast.short";
+  static const toastLong = "Toast.long";
 
   static void show({String? message, Widget? messageView}) {
+    if (message == null && messageView == null) {
+      return;
+    }
+    _show(type: toastShort, message: message, messageView: messageView);
+  }
+
+  static void showLong({String? message, Widget? messageView}) {
+    if (message == null && messageView == null) {
+      return;
+    }
+    _show(type: toastLong, message: message, messageView: messageView);
+  }
+
+  static void _show({required String type, String? message, Widget? messageView}) {
     assert(message != null || messageView != null, 'message or messageView must not be null');
     if (messageView != null) {
-      EventBus.sendEvent(Event<Widget>(key: eventKey, data: messageView));
+      EventBus.sendEvent(Event<Widget>(key: type, data: messageView));
     } else {
       log("Toast:: show: $message");
-      EventBus.sendEvent(Event<Widget>(key: eventKey, data: DefaultMessageView(message!)));
+      EventBus.sendEvent(Event<Widget>(key: type, data: DefaultMessageView(message!)));
     }
   }
 
@@ -28,9 +45,14 @@ class ToastState extends State<Toast> with BaseViewState<Toast, ToastViewModel> 
   void initState() {
     super.initState();
     EventBus.listen<Widget>(
-      events: [const Event.empty(key: Toast.eventKey)],
+      events: [const Event.empty(key: Toast.toastShort)],
       baseView: this,
-      listener: model.onEvent,
+      listener: (message) => model.onEvent(message, long: false),
+    );
+    EventBus.listen<Widget>(
+      events: [const Event.empty(key: Toast.toastLong)],
+      baseView: this,
+      listener: (message) => model.onEvent(message, long: true),
     );
   }
 
@@ -43,7 +65,7 @@ class ToastState extends State<Toast> with BaseViewState<Toast, ToastViewModel> 
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: Toast.position.alignment,
             children: model.messages,
           )),
     );
@@ -61,11 +83,12 @@ class ToastViewModel extends ViewModel {
   @override
   void initData() {}
 
-  void onEvent(Widget message) {
+  void onEvent(Widget message, {bool long = false}) {
     log("ToastViewModel:: onEvent: $message");
     AutoDisappearWidget widget = AutoDisappearWidget(
       key: UniqueKey(),
       child: message,
+      duration: long ? const Duration(seconds: 4) : const Duration(seconds: 2),
       onDisappear: () {
         messages.removeWhere((element) => element.child == message);
         setState();
@@ -95,5 +118,20 @@ class DefaultMessageView extends StatelessWidget {
       ),
       child: Text(message, style: const TextStyle(fontSize: 12, color: Colors.white, overflow: TextOverflow.visible)),
     );
+  }
+}
+
+enum Position { top, center, bottom }
+
+extension ToastPositionExtension on Position {
+  MainAxisAlignment get alignment {
+    switch (this) {
+      case Position.top:
+        return MainAxisAlignment.start;
+      case Position.center:
+        return MainAxisAlignment.center;
+      case Position.bottom:
+        return MainAxisAlignment.end;
+    }
   }
 }
