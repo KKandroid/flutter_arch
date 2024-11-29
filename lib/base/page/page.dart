@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_arch/arch/index.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -122,7 +123,7 @@ abstract class BasePageState<T extends StatefulWidget, M extends BasePageModel> 
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           buildFixedTop(context, model),
-          ExcludeFocus(child: refreshBody),
+          Expanded(child: refreshBody),
           buildFixedBottom(context, model),
         ],
       ),
