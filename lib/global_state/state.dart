@@ -27,9 +27,9 @@ class GlobalState<T> {
       return _instances[key]! as GlobalState<T>;
     } else {
       // 创建新的实例并将其存储在映射中
-      var localValue = StorageUtil.get<T>(key, parser: parser);
+      var localValue = StorageUtil.secureRead<T>(key, parser: parser);
       if (localValue == null) {
-        StorageUtil.save<T>(key, defaultValue, serializer: serializer);
+        StorageUtil.secureSave<T>(key, defaultValue, serializer: serializer);
       }
       final instance = GlobalState<T>._(key, serializer).._data = LiveData(localValue ?? defaultValue);
       _instances[key] = instance;
@@ -55,7 +55,7 @@ class GlobalState<T> {
   void setValue(T newData) {
     if (value != newData) {
       _data.setValue(newData);
-      StorageUtil.save<T>(key, newData, serializer: _serializer);
+      StorageUtil.secureSave<T>(key, newData, serializer: _serializer);
     }
   }
 }

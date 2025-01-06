@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:developer';
@@ -10,12 +12,18 @@ class StorageUtil {
   static final List<Type> _supportType = [bool, int, double, String, List<String>];
   static bool _initialized = false;
   static late SharedPreferences _prefs;
-  static const storage = FlutterSecureStorage();
+  static const storage = FlutterSecureStorage(
+    iOptions: IOSOptions(),
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
+
+  static late Map<String, String> _secureData;
 
   /// 初始化
   static Future init() async {
     _prefs = await SharedPreferences.getInstance();
     _initialized = true;
+    _secureData = await storage.readAll();
   }
 
   /// 获取所有本地数据
@@ -90,13 +98,58 @@ class StorageUtil {
     return v ?? [];
   }
 
-  /// 加密存储
-  static Future<void> secureSave(String key, String value) async {
-    await storage.write(key: key, value: value);
+  /// 加密保存数据
+  static Future secureSave<T>(String key, T value, {Serializer<T>? serializer}) async {
+    _checkInit();
+    assert(_supportType.contains(T) || serializer != null);
+    switch (value) {
+      case bool _:
+        return _secureSave(key, value.toString());
+      case int _:
+        return _secureSave(key, value.toString());
+      case double _:
+        return _secureSave(key, value.toString());
+      case String _:
+        return _secureSave(key, value);
+      case List<String> _:
+        return _secureSave(key, jsonEncode(value));
+      default:
+        return _secureSave(key, serializer!(value));
+    }
   }
 
-  /// 读取加密存储
-  static Future<String?> secureRead(String key, String value) async {
-    return await storage.read(key: key);
+  /// 获取加密数据
+  /// [key] 键
+  /// [defaultValue] 默认值
+  /// [parser] 自定义解析器
+  static T? secureRead<T>(String key, {T? defaultValue, Parser<T>? parser}) {
+    try {
+      assert(_supportType.contains(T) || parser != null);
+      String? v = _secureData[key];
+      if (v == null) return defaultValue;
+      switch (T) {
+        case bool:
+          return bool.parse(v) as T;
+        case int:
+          return int.parse(v) as T;
+        case double:
+          return double.parse(v) as T;
+        case String:
+          return v as T;
+        case const (List<String>):
+          return jsonDecode(v) as T;
+        default:
+          return parser!(v);
+      }
+    } catch (e) {
+      log(e.toString());
+      return defaultValue;
+    }
+  }
+
+  /// 加密存储
+  static Future<void> _secureSave(String key, String value) async {
+    _secureData[key] = value;
+    await storage.write(key: key, value: value);
   }
 }

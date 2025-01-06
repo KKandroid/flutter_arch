@@ -18,8 +18,8 @@ class OverlayManager {
             fit: StackFit.expand,
             children: [
               child,
-              GlobalLoadingView(),
-              Toast(),
+              const GlobalLoadingView(),
+              const Toast(),
             ],
           ));
     });

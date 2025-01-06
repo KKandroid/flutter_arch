@@ -5,3 +5,5 @@ export 'base/index.dart';
 export 'even_bus/index.dart';
 export 'global_state/index.dart';
 export 'overlay/index.dart';
+export 'extension/index.dart';
+
